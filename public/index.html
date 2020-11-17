@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="app" style="color: #ddd; background-color: red;"> hello
+    <p class="text">hello {{name}}</p>
+    <span prop="setProp">{{age}}</span>
+  </div>
+  <script src="/dist/umd/vue.js"></script>
+  <script>
+    let vm = new Vue({
+      el: '#app',
+      data() {
+        return {
+          name: 'lisi',
+          age: 20,
+          address: {
+            block: 23,
+            city: 'hangzhou'
+          },
+          list: [{name: 'lisi'}]
+        }
+      },
+      computed() {},
+      beforeCreate() {
+        console.log('new Vue')
+      }
+    })
+
+    setTimeout(() => {
+      vm.age = 2000
+    }, 1000)
+
+    // vm._data.list.push({name: 22})
+    
+    // console.log(vm._data.name)
+    // vm.name = 'wamnger'
+    // console.log(vm.name)
+
+  </script>
+</body>
+<style>
+  .text {
+    font-size: 36px;
+    font-weight: 600;
+  }
+</style>
+</html>
