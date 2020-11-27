@@ -23,11 +23,12 @@ const methods = [
 methods.forEach(method => {
   arrayMethods[method] = function (...args) {
     console.log(method, '调用')
-
+    // console.log(this)
     const result = oldArrayMethods[method].apply(this, args) // 调用原生方法，让数组的内容真正发生变化，并返回
     // push unshift 添加的元素也有可能是对象，所以需要对这操作元素的方法的传入数据的进行监测
     // splice, 如果传入三个参数时也需要进行监测
     let inserted // 当前要插入的元素
+    let ob = this.__ob__
     switch(method) {
       case 'push':
       case 'unshift':
@@ -40,9 +41,11 @@ methods.forEach(method => {
     }
 
     if (inserted) {
-      this.__ob__.observerArray(inserted)
+      ob.observerArray(inserted) // 将新增属性继续监测
     }
 
+    ob.dep.notify() // 如果用户调用了数组方法 我会通知当前这个dep去更新
+    
     return result
   }
 })

@@ -45,7 +45,7 @@ export function patch (oldNode, vnode) {
     const newProps = vnode.data
     // 把属性放到当前节点 vnode.el
     const el = vnode.el
-    console.log(newProps)
+    // console.log(newProps)
     for (let key in newProps) {
       // 属性为style或者是class的需要特殊处理
       if (key === 'style') {

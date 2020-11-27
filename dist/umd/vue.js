@@ -89,12 +89,15 @@
   const methods = ['push', 'shift', 'pop', 'unshift', 'reverse', 'sort', 'splice'];
   methods.forEach(method => {
     arrayMethods[method] = function (...args) {
-      console.log(method, '调用');
+      console.log(method, '调用'); // console.log(this)
+
       const result = oldArrayMethods[method].apply(this, args); // 调用原生方法，让数组的内容真正发生变化，并返回
       // push unshift 添加的元素也有可能是对象，所以需要对这操作元素的方法的传入数据的进行监测
       // splice, 如果传入三个参数时也需要进行监测
 
       let inserted; // 当前要插入的元素
+
+      let ob = this.__ob__;
 
       switch (method) {
         case 'push':
@@ -108,8 +111,10 @@
       }
 
       if (inserted) {
-        this.__ob__.observerArray(inserted);
+        ob.observerArray(inserted); // 将新增属性继续监测
       }
+
+      ob.dep.notify(); // 如果用户调用了数组方法 我会通知当前这个dep去更新
 
       return result;
     };
@@ -123,8 +128,17 @@
       this.subs = [];
     }
 
+    addSub(watcher) {
+      this.subs.push(Dep.target);
+    }
+
     depend() {
-      this.subs.push(Dep.target); // 观察者模式
+      // 此时的Dep.target就是watcher，现在这个处理方式会重复存放watcher
+      // this.subs.push(Dep.target) // 观察者模式
+      // 让这个watcher记住我当前的dep,
+      // this就是Dep的实例
+      // 通过在watcher里记住这个dep
+      Dep.target.addDep(this);
     }
 
     notify() {
@@ -149,29 +163,34 @@
 
   class Observer {
     constructor(data) {
-      if (Array.isArray(data)) {
-        // 如果是数组的话，不会对索引进行观测，因为会导致性能的问题
-        // 如果元素是对象是，不给对象赋值的话，那么观测索引就没有什么意义，造成性能浪费
-        // 因为数组对象中的属性也进行了观测
-        // 需要在其他地方使用Observer的实例的方法或者属性，所以给监测的对象加一个属性__ob__表示该对象已经被监测
-        // 后续可以知道该值是否是被监测过的
-        // 这样子写为了防止调用栈溢出 this.observerArray
-        def(data, '__ob__', this); // 如果数组内是对象，再去监测
-        // 数组调用方法时，会通过原型链进行查找，如果找到我们改写的方法，则直接使用，没有，则会继续向上查找
+      this.dep = new Dep(); // 给数组用的
+      // 如果是数组的话，不会对索引进行观测，因为会导致性能的问题
+      // 如果元素是对象是，不给对象赋值的话，那么观测索引就没有什么意义，造成性能浪费
+      // 因为数组对象中的属性也进行了观测
+      // 需要在其他地方使用Observer的实例的方法或者属性，所以给监测的对象加一个属性__ob__表示该对象已经被监测
+      // 后续可以知道该值是否是被监测过的
+      // 这样子写为了防止调用栈溢出 this.observerArray
 
+      def(data, '__ob__', this);
+
+      if (Array.isArray(data)) {
+        // 如果数组内是对象，再去监测
+        // 数组调用方法时，会通过原型链进行查找，如果找到我们改写的方法，则直接使用，没有，则会继续向上查找
         data.__proto__ = arrayMethods;
         this.observerArray(data);
       } else {
         this.walk(data); // 对对象进行监控劫持
       }
-    }
+    } // 对数组进行监控劫持
+
 
     observerArray(data) {
       for (let i = 0; i < data.length; i++) {
         // 监控数组的每一项
         observe(data[i]);
       }
-    }
+    } // 对对象进行监控劫持
+
 
     walk(data) {
       let keys = Object.keys(data);
@@ -187,8 +206,9 @@
 
   function defineReactive(data, key, value) {
     let dep = new Dep(); // 如果data的属性值是对象，则再进行数据劫持
+    // 递归实现数据检测, 开发优化点： 不要嵌套太深的数据结构，不然性能会损耗
 
-    observe(value); // 递归实现数据检测, 开发优化点： 不要嵌套太深的数据结构，不然性能会损耗
+    let childob = observe(value); // 给数组的用的
 
     Object.defineProperty(data, key, {
       configurable: true,
@@ -201,6 +221,19 @@
         if (Dep.target) {
           // 如果当前有watcher
           dep.depend(); // 需要将watcher存起来，等到 数据更新的时候，再去执行watcher
+          // 多次存入watcher时，就会重复存放所以需要去重
+          // console.log(dep.subs)
+
+          console.log(childob, value);
+
+          if (childob) {
+            // 数组的依赖收集
+            childob.dep.depend(); // 收集了数组的相关依赖
+
+            if (Array.isArray(value)) {
+              dependArray(value);
+            }
+          }
         }
 
         return value;
@@ -217,6 +250,16 @@
       }
 
     });
+  }
+
+  function dependArray(value) {
+    for (let i = 0; i < value.length; i++) {
+      value[i].__ob__ && value[i].__ob__.dep.depend(); // 对数组中的数组进行依赖收集
+
+      if (Array.isArray(value[i])) {
+        dependArray(value[i]);
+      }
+    }
   }
 
   function observe(data) {
@@ -268,7 +311,21 @@
       this.id = id$1++;
       this.getter = exprOrFn; // 将内部传过来的回调函数，放到getter属性上
 
+      this.depsId = new Set();
+      this.deps = [];
       this.get(); // 调用get方法，会让渲染watcher执行
+    }
+
+    addDep(dep) {
+      // watcher里不能放重复的dep，dep里不能放重复的watcher
+      let id = dep.id;
+
+      if (!this.depsId.has(id)) {
+        this.depsId.add(id);
+        this.deps.push(dep); // 然后再让dep里存放watcher
+
+        dep.addSub(this);
+      }
     }
 
     get() {
@@ -332,8 +389,7 @@
     function updateProperties(vnode) {
       const newProps = vnode.data; // 把属性放到当前节点 vnode.el
 
-      const el = vnode.el;
-      console.log(newProps);
+      const el = vnode.el; // console.log(newProps)
 
       for (let key in newProps) {
         // 属性为style或者是class的需要特殊处理
@@ -656,8 +712,8 @@
 
       vm.$options = mergeOptions(vm.constructor.options, options); // 此时已经合并完生命周期了，然后就需要在某个时期，调用一下存好的钩子函数就可以了
       // 就是callHoook,
+      // console.log(vm.$options)
 
-      console.log(vm.$options);
       callHook(vm, 'beforeCreate');
       initState(vm);
       callHook(vm, 'created'); // 开始挂载渲染页面
@@ -766,26 +822,21 @@
       // 如何实现两个对象的合并
       this.options = mergeOptions(this.options, mixin);
     }; // 生命周期合并策略
+    // Vue.mixin({
+    //   a: 1, 
+    //   beforeCreate() {
+    //     console.log('mixin 1')
+    //   }
+    // })
+    // Vue.mixin({
+    //   b: 2, 
+    //   a: 4,
+    //   beforeCreate() {
+    //     console.log('mixin 2')
+    //   }
+    // })
+    // console.log(Vue.options)
 
-
-    Vue.mixin({
-      a: 1,
-
-      beforeCreate() {
-        console.log('mixin 1');
-      }
-
-    });
-    Vue.mixin({
-      b: 2,
-      a: 4,
-
-      beforeCreate() {
-        console.log('mixin 2');
-      }
-
-    });
-    console.log(Vue.options);
   }
 
   function Vue(options) {

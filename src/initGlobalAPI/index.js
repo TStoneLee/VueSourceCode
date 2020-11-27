@@ -13,21 +13,21 @@ export function initGlobalAPI (Vue) {
 
   // 生命周期合并策略
 
-  Vue.mixin({
-    a: 1, 
-    beforeCreate() {
-      console.log('mixin 1')
-    }
-  })
+  // Vue.mixin({
+  //   a: 1, 
+  //   beforeCreate() {
+  //     console.log('mixin 1')
+  //   }
+  // })
 
-  Vue.mixin({
-    b: 2, 
-    a: 4,
-    beforeCreate() {
-      console.log('mixin 2')
-    }
-  })
+  // Vue.mixin({
+  //   b: 2, 
+  //   a: 4,
+  //   beforeCreate() {
+  //     console.log('mixin 2')
+  //   }
+  // })
 
-  console.log(Vue.options)
+  // console.log(Vue.options)
 
 }

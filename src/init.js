@@ -16,7 +16,7 @@ export function initMixin (Vue) {
     vm.$options =  mergeOptions(vm.constructor.options, options)
     // 此时已经合并完生命周期了，然后就需要在某个时期，调用一下存好的钩子函数就可以了
     // 就是callHoook,
-    console.log(vm.$options)
+    // console.log(vm.$options)
     callHook(vm, 'beforeCreate')
 
     initState(vm)

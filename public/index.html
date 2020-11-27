@@ -6,9 +6,11 @@
   <title>Document</title>
 </head>
 <body>
+  <!-- watcher 和dep关系，一个watcher对应n个dep,一个dep对应多个watcher -->
   <div id="app" style="color: #ddd; background-color: red;"> hello
-    <p class="text">hello {{name}}</p>
+    <p class="text">hello </p>
     <span prop="setProp">{{age}}</span>
+    <p>数组：{{list}}</p>
   </div>
   <script src="/dist/umd/vue.js"></script>
   <script>
@@ -16,23 +18,27 @@
       el: '#app',
       data() {
         return {
-          name: 'lisi',
+          // name: 'lisi',
           age: 20,
-          address: {
-            block: 23,
-            city: 'hangzhou'
-          },
-          list: [{name: 'lisi'}]
+          // address: {
+          //   block: 23,
+          //   city: 'hangzhou'
+          // },
+          // list: [{name: 'lisi'}]
+          // list: [1, 2, 3]
+          list: [[1, 2, 3]]
         }
       },
       computed() {},
-      beforeCreate() {
-        console.log('new Vue')
-      }
+      // beforeCreate() {
+      //   console.log('new Vue')
+      // }
     })
 
     setTimeout(() => {
       vm.age = 2000
+      // vm.list.push(4,5,6)
+      // vm.list[0].push(4, 5, 6)
     }, 1000)
 
     // vm._data.list.push({name: 22})

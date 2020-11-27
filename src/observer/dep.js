@@ -4,9 +4,17 @@ class Dep {
     this.id = id++
     this.subs = []
   }
-
+  addSub (watcher) {
+    this.subs.push(Dep.target)
+  }
   depend() {
-    this.subs.push(Dep.target) // 观察者模式
+    // 此时的Dep.target就是watcher，现在这个处理方式会重复存放watcher
+    // this.subs.push(Dep.target) // 观察者模式
+
+    // 让这个watcher记住我当前的dep,
+    // this就是Dep的实例
+    // 通过在watcher里记住这个dep
+    Dep.target.addDep(this)
   }
 
   notify() {
