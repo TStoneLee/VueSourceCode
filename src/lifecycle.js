@@ -27,6 +27,9 @@ export function mountComponent(vm, el) {
   let updataComponent = () => { // 无论是更新还是渲染都会用到此方法
 
     // vm._render 返回的是虚拟dom，vm_update返回的是真实的dom（现在是新的，并且数据都已经填充完成）
+
+
+    console.log('update') // queueWatcher验证
     vm._update(vm._render())
 
     // 只有第一次才会解析成AST语法树，后面的更新，只会去做比对然后更新
@@ -42,6 +45,7 @@ export function mountComponent(vm, el) {
 }
 
 export function callHook (vm, hook) {
+  // 现在hook是用户在vue文件中自定义传入的钩子函数
   const hanlders = vm.$options[hook]
   if (hanlders) {
     for (let i = 0; i < hanlders.length; i++) {

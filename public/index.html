@@ -38,7 +38,12 @@
     setTimeout(() => {
       vm.age = 2000
       // vm.list.push(4,5,6)
-      // vm.list[0].push(4, 5, 6)
+      vm.list[0].push(4)
+      vm.list[0].push(5)
+      vm.list[0].push(6)
+
+      vm.$nextTick(() => console.log(vm.$el.innerHTML))
+      
     }, 1000)
 
     // vm._data.list.push({name: 22})

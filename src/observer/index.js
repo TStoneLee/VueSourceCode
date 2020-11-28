@@ -4,7 +4,7 @@ import { arrayMethods } from './array'
 import Dep from './dep'
  
 class Observer{
-constructor(data) {
+  constructor(data) {
     this.dep = new Dep // 给数组用的
     // 如果是数组的话，不会对索引进行观测，因为会导致性能的问题
     // 如果元素是对象是，不给对象赋值的话，那么观测索引就没有什么意义，造成性能浪费
@@ -58,7 +58,7 @@ function defineReactive(data, key, value) {
         // 多次存入watcher时，就会重复存放所以需要去重
 
         // console.log(dep.subs)
-        console.log(childob, value)
+        // console.log(childob, value)
         if (childob) { // 数组的依赖收集
           childob.dep.depend() // 收集了数组的相关依赖
           if (Array.isArray(value)) {

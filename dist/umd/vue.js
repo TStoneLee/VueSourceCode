@@ -223,8 +223,7 @@
           dep.depend(); // 需要将watcher存起来，等到 数据更新的时候，再去执行watcher
           // 多次存入watcher时，就会重复存放所以需要去重
           // console.log(dep.subs)
-
-          console.log(childob, value);
+          // console.log(childob, value)
 
           if (childob) {
             // 数组的依赖收集
@@ -301,6 +300,48 @@
     observe(data);
   }
 
+  // nextTick在vue源码中也有使用，所以实现把源码中的回调函数先放入队列中
+  // 再把用户自定义的nextTick放入队列中
+  let callbacks = [];
+  let waiting = false;
+
+  function flushCallback() {
+    callbacks.forEach(callback => callback());
+    waiting = false;
+  } // 多次调用nextTick
+  // waiting，等callbakcs里面的函数执行完之后，再去添加下一轮的回调函数
+  // 如果没有waiting的话，就会一有callback就会执行回调函数
+
+
+  function nextTick(cb) {
+    callbacks.push(cb);
+
+    if (!waiting) {
+      setTimeout(flushCallback, 0);
+      waiting = true;
+    }
+  }
+
+  let queue = []; // 这里存放的等待更新视图的watcher
+
+  let has = {}; // 判断是否已经有了该watcher
+
+  function flushSchedularQueue() {
+    queue.forEach(watcher => watcher.run());
+    queue = [];
+    has = {};
+  }
+
+  function queueWatcher(watcher) {
+    let id = watcher.id;
+
+    if (!has[id]) {
+      queue.push(watcher);
+      has[id] = true;
+      nextTick(flushSchedularQueue); // setTimeout(flushSchedularQueue, 0)
+    }
+  }
+
   let id$1 = 0; // 给每一个watcher一个标识符
 
   class Watcher {
@@ -333,9 +374,18 @@
       pushTarget(this);
       this.getter();
       popTarget();
-    }
+    } // 现在是每次更新都会立即去渲染数据，需要改成等数据操作完成之后，再去更新视图，
+    // 所以就是可以添加一个watcher队列，等所有的数据操作完成之后再去更新视图即再来调用this.get()
+
 
     update() {
+      // console.log('update')
+      // this.get()
+      queueWatcher(this);
+    }
+
+    run() {
+      // 这个函数是在等所有的数据操作完成之后再去更新视图
       this.get();
     }
 
@@ -429,6 +479,8 @@
     let updataComponent = () => {
       // 无论是更新还是渲染都会用到此方法
       // vm._render 返回的是虚拟dom，vm_update返回的是真实的dom（现在是新的，并且数据都已经填充完成）
+      console.log('update'); // queueWatcher验证
+
       vm._update(vm._render()); // 只有第一次才会解析成AST语法树，后面的更新，只会去做比对然后更新
 
     }; // 然后在一个Watcher类，调用updataComponent函数
@@ -441,6 +493,7 @@
     callHook(vm, 'mounted'); // 这个时候数据完成了渲染
   }
   function callHook(vm, hook) {
+    // 现在hook是用户在vue文件中自定义传入的钩子函数
     const hanlders = vm.$options[hook];
 
     if (hanlders) {
@@ -750,6 +803,8 @@
 
       mountComponent(vm, el);
     };
+
+    Vue.prototype.$nextTick = nextTick;
   }
 
   function createElement(tag, data = {}, ...children) {

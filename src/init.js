@@ -6,6 +6,8 @@ import { mountComponent, callHook } from './lifecycle'
 import { mergeOptions } from './utils/index'
 
 import { compileToFunction } from './compiler/index'
+
+import { nextTick } from './utils/next-tick'
 export function initMixin (Vue) {
   Vue.prototype._init = function (options) {
     // 数据劫持
@@ -58,5 +60,7 @@ export function initMixin (Vue) {
     mountComponent(vm, el)
 
   }
+
+  Vue.prototype.$nextTick = nextTick
 
 }
