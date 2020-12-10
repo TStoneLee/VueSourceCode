@@ -2,6 +2,16 @@ export function isObject(data) {
   return typeof data ===  'object' && typeof data !== null
 }
 
+export function isReservedTag (tagName) {
+  let str = 'p,div,span,input,button'
+  let obj = []
+  str.split(',').forEach(tag => {
+    obj[tag] = true
+  })
+
+  return obj[tagName]
+}
+
 export function def(data, key, value) {
   Object.defineProperty(data, key, {
     configurable: false,
@@ -51,6 +61,19 @@ function mergeHook (parentVal, childVal) {
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
+
+function mergeAssets (parentVal, childVal) {
+  // 如果子类有components则直接获取，如果没有，则通过res.__proto__访问父类的components
+  const res  = Object.create(parentVal) 
+  if (childVal) {
+    for (let key in childVal) {
+      res[key] = childVal[key]
+    }
+  }
+  return res
+}
+// 组件的合并策略
+strats.components = mergeAssets
 
 export function mergeOptions (parent, child) {
   const option = {}

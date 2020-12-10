@@ -8,11 +8,11 @@ export function renderMixin(Vue) {
   // _s JSON.stringify()
 
   Vue.prototype._c = function () {
-    return createElement(...arguments) // _c内有由ast树组合的参数,如果不明白参数请看compiler/index下的render
+    return createElement(this, ...arguments) // _c内有由ast树组合的参数,如果不明白参数请看compiler/index下的render
   }
 
   Vue.prototype._v = function (text) {
-    return createTextNode(text)
+    return createTextNode(this, text)
   }
 
   Vue.prototype._s = function (val) {
@@ -24,6 +24,7 @@ export function renderMixin(Vue) {
     // 首先获取实例
     const vm = this
     const { render } = vm.$options
+
     
     // console.log(render)
     //这里是执行之前生成的render函数，还需要传入当前的实例，with(this)， 获取到实例上对应的值

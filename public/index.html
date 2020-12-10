@@ -6,52 +6,106 @@
   <title>Document</title>
 </head>
 <body>
-  <!-- watcher 和dep关系，一个watcher对应n个dep,一个dep对应多个watcher -->
-  <div id="app" style="color: #ddd; background-color: red;"> hello
-    <p class="text">hello </p>
-    <span prop="setProp">{{age}}</span>
-    <p>数组：{{list}}</p>
+  <div id="app">
+    <div>
+      hello
+    </div>
+    <span>{{name}}</span>
   </div>
   <script src="/dist/umd/vue.js"></script>
   <script>
+
+    // <!-- watcher 和dep关系，一个watcher对应n个dep,一个dep对应多个watcher -->
+    // <div id="app" style="color: #ddd; background-color: red;"> hello
+    //   <p class="text">hello </p>
+    //   <span prop="setProp">{{age}}</span>
+    //   <p>数组：{{list}}</p>
+    // </div>
+    // <!-- 这是是跟组件渲染 -->
+    // let vm = new Vue({
+    //   el: '#app',
+    //   data() {
+    //     return {
+    //       // name: 'lisi',
+    //       age: 20,
+    //       // address: {
+    //       //   block: 23,
+    //       //   city: 'hangzhou'
+    //       // },
+    //       // list: [{name: 'lisi'}]
+    //       // list: [1, 2, 3]
+    //       list: [[1, 2, 3]]
+    //     }
+    //   },
+    //   computed() {},
+    //   // beforeCreate() {
+    //   //   console.log('new Vue')
+    //   // }
+    // })
+
+    // setTimeout(() => {
+    //   vm.age = 2000
+    //   // vm.list.push(4,5,6)
+    //   vm.list[0].push(4)
+    //   vm.list[0].push(5)
+    //   vm.list[0].push(6)
+
+    //   vm.$nextTick(() => console.log(vm.$el.innerHTML))
+      
+    // }, 1000)
+
+    // // vm._data.list.push({name: 22})
+    
+    // // console.log(vm._data.name)
+    // // vm.name = 'wamnger'
+    // // console.log(vm.name)
+  
+  </script>
+  
+  <script>
+  // <!-- 下面是渲染自定义的组件template -->
+
+    // 注册全局组件，内部会通过Vue.extend()返回一个组件的构造函数，然后通过new 这个构造函数产生实例
+    // 就是待解析的ast(kankan)
+    // Vue.extend(options)  用法：
+    // 使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。
+    // data 选项是特例，需要注意 - 在 Vue.extend() 中它必须是函数
+
+    // Vue.component('my-component', {
+    //   template: '<div>hello template component</div>'
+    // })
+    
+    // 更改组件的合并策略 现在是如果全局和局部都注册组件，那么局部会覆盖掉全局注册的
     let vm = new Vue({
       el: '#app',
-      data() {
-        return {
-          // name: 'lisi',
-          age: 20,
-          // address: {
-          //   block: 23,
-          //   city: 'hangzhou'
-          // },
-          // list: [{name: 'lisi'}]
-          // list: [1, 2, 3]
-          list: [[1, 2, 3]]
-        }
+      data: {
+        name: 123
       },
-      computed() {},
-      // beforeCreate() {
-      //   console.log('new Vue')
+      // components: {
+      //   'my-component':  {
+      //     template: '<div>hello in new Vue <aa></aa> </div>',
+      //     components: {
+      //       'aa': {
+      //         template: '<div>aa </div>'
+      //       }
+      //     }
+      //   }
       // }
     })
-
     setTimeout(() => {
-      vm.age = 2000
-      // vm.list.push(4,5,6)
-      vm.list[0].push(4)
-      vm.list[0].push(5)
-      vm.list[0].push(6)
+      vm.name = 'changed'
+    }, 3000)
+    // console.log(vm)
 
-      vm.$nextTick(() => console.log(vm.$el.innerHTML))
-      
-    }, 1000)
+    // 组件渲染的时候，会调用当前组件对应的构造函数，产生一个实例
+    // 我们可以new这个类，每个组件调用都会new一下
 
-    // vm._data.list.push({name: 22})
-    
-    // console.log(vm._data.name)
-    // vm.name = 'wamnger'
-    // console.log(vm.name)
+    // 每个组件在使用时都会调用Vue.extend方法创建一个构造函数
+    // 实例化子组件时会将当前选项和用户定义选项合并 mergeOptions
+    // 通过创建实例 内部会调用子类的_init() 内部会在创建一个渲染watcher 将渲染后的结果放到vm.$el上
+    // 即vm.$el = 组件渲染的结果
 
+    // 异步组件先渲染空，等加载完成之后，再去重新渲染
   </script>
 </body>
 <style>

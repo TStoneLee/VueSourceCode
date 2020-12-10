@@ -48,12 +48,13 @@ export function initMixin (Vue) {
       // 如果用户自己写的render函数则使用，没有则需要把模版进行编译然后在赋值给options上的render
       // 对模版进行编译
       let template = options.template
+      // 如果没有template的话就把el当作template
       if(!template && el) {
         template = el.outerHTML
-        // 然后就需要把template转换成render方法
-        const render = compileToFunction(template)
-        options.render = render
       }
+      // 然后就需要把template转换成render方法
+      const render = compileToFunction(template)
+      options.render = render
     }
 
     // 开始渲染当前组件，并挂载这个组件

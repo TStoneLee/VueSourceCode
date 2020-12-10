@@ -5,8 +5,32 @@ export function lifecycleMixin(Vue) {
     // 返回的是真实的DOM
 
     const vm = this
-    // 通过虚拟节点，渲染出真实的DOM， 然后替换掉真实的$el
-    vm.$el = patch(vm.$el, vnode) // 这里是新旧做比对
+
+    // 首先第一次渲染的时候是不会进行diff算法比对的
+    // 所以应该先记下上一次的虚拟节点
+    // 把上次的虚拟节点放在vm实例上作为标记
+    let prevVnode = vm._vnode
+    vm._vnode = vnode // 此时的vnode上真实的DOM（el属性上）
+
+    /**
+     * _vnode 与 $vnode区别：
+     * _vnode 对应的就是这个组件本身渲染的内容（是组件里的内容，不是组件的）
+     * $vnode代表的是组件的虚拟节点（{tag: 'my-compontne-',....},不是组件内的，
+     * 就是内部根据这个组件标签创建的虚拟节点
+     * 
+     * 关系： this._vnode.parent === this.$vnode
+     */
+ 
+    if (!prevVnode) {
+      // 通过虚拟节点，渲染出真实的DOM， 然后替换掉真实的$el
+      vm.$el = patch(vm.$el, vnode) // 这里是新旧做比对    
+    } else {
+      vm.$el = patch(prevVnode, vnode)
+    }
+
+    // // 通过虚拟节点，渲染出真实的DOM， 然后替换掉真实的$el
+    // vm.$el = patch(vm.$el, vnode) // 这里是新旧做比对
+
 
   }
 } 
@@ -29,7 +53,7 @@ export function mountComponent(vm, el) {
     // vm._render 返回的是虚拟dom，vm_update返回的是真实的dom（现在是新的，并且数据都已经填充完成）
 
 
-    console.log('update') // queueWatcher验证
+    // console.log('update') // queueWatcher验证
     vm._update(vm._render())
 
     // 只有第一次才会解析成AST语法树，后面的更新，只会去做比对然后更新
